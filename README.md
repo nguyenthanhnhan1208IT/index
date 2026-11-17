@@ -415,6 +415,136 @@ toggleCart();
 // Khởi chạy ban đầu
 renderProducts(products);
 updateCartUI();
+   { id: 3, name: "iPhone 15 Pro Max 256GB", price: 29900000, category: "phone", img: "https://unsplash.com" },
+            { id: 4, name: "Samsung Galaxy S24 Ultra", price: 27500000, category: "phone", img: "https://unsplash.com" },
+            { id: 5, name: "Tai nghe Sony WH-1000XM5", price: 6990000, category: "accessory", img: "https://unsplash.com" },
+            { id: 6, name: "Chuột Logitech MX Master 3S", price: 2290000, category: "accessory", img: "https://unsplash.com" }
+        ];
 
+        let cart = [];
+        let currentCategory = 'all';
+
+        // Định dạng tiền tệ VNĐ
+        const formatPrice = (price) => price.toLocaleString('vi-VN') + ' ₫';
+
+        // Hiển thị danh sách sản phẩm
+        function renderProducts() {
+            const list = document.getElementById('productList');
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = products.filter(p => {
+                const matchCat = currentCategory === 'all' || p.category === currentCategory;
+                const matchKey = p.name.toLowerCase().includes(keyword);
+                return matchCat && matchKey;
+            });
+
+            if (filtered.length === 0) {
+                list.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #64748b;">Không tìm thấy sản phẩm phù hợp.</p>';
+                return;
+            }
+
+            list.innerHTML = filtered.map(p => `
+                <div class="product-card">
+                    <div>
+                        <img src="${p.img}" alt="${p.name}" class="product-img">
+                        <h3 class="product-title">${p.name}</h3>
+                    </div>
+                    <div>
+                        <div class="product-price">${formatPrice(p.price)}</div>
+                        <button class="add-btn" onclick="addToCart(${p.id})">+ Thêm vào giỏ</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Lọc theo danh mục
+        function filterCategory(category, btn) {
+            currentCategory = category;
+            document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderProducts();
+        }
+
+        // Tìm kiếm theo từ khóa
+        document.getElementById('searchInput').addEventListener('input', renderProducts);
+
+        // Thêm vào giỏ hàng
+        function addToCart(id) {
+            const product = products.find(p => p.id === id);
+            const existing = cart.find(item => item.id === id);
+
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cart.push({ ...product, qty: 1 });
+            }
+            updateCartUI();
+        }
+
+        // Thay đổi số lượng trong giỏ
+        function changeQty(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (!item) return;
+
+            item.qty += delta;
+            if (item.qty <= 0) {
+                cart = cart.filter(i => i.id !== id);
+            }
+            updateCartUI();
+        }
+
+        // Cập nhật giao diện giỏ hàng
+        function updateCartUI() {
+            const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
+            const totalPrice = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+
+            document.getElementById('cartCount').textContent = totalQty;
+            document.getElementById('cartTotal').textContent = formatPrice(totalPrice);
+
+            const cartItemsEl = document.getElementById('cartItems');
+            if (cart.length === 0) {
+                cartItemsEl.innerHTML = '<p style="text-align: center; color: #94a3b8; margin-top: 30px;">Giỏ hàng đang trống.</p>';
+                return;
+            }
+
+            cartItemsEl.innerHTML = cart.map(item => `
+                <div class="cart-item">
+                    <div>
+                        <div style="font-weight: 600;">${item.name}</div>
+                        <div style="color: #e11d48; font-size: 0.9rem;">${formatPrice(item.price)}</div>
+                    </div>
+                    <div class="qty-controls">
+                        <button onclick="changeQty(${item.id}, -1)">-</button>
+                        <span>${item.qty}</span>
+                        <button onclick="changeQty(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Bật/tắt cửa sổ giỏ hàng
+        function toggleCart() {
+            const modal = document.getElementById('cartModal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        // Thanh toán
+        function checkout() {
+            if (cart.length === 0) {
+                alert('Giỏ hàng của bạn đang trống!');
+                return;
+            }
+            alert('Cảm ơn bạn đã đặt hàng tại TechStore! Đơn hàng đang được xử lý.');
+            cart = [];
+            updateCartUI();
+            toggleCart();
+        }
+
+        // Khởi chạy ban đầu
+        renderProducts();
+        updateCartUI();
+    </script>
+</body>
+</html>
 
 
